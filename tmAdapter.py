@@ -1,30 +1,92 @@
 import string
 from tminterface.interface import TMInterface
 from tminterface.client import Client, run_client
-import sys
+from rigControl import RigControl
+import numpy as np
+
+rollBuffer = []
+rollBufferSize = 40
+nextRollBufferIndex = 0
+
+def normalizeRoll(roll: float):
+    # global seems so wrong
+    global rollBuffer 
+    global rollBufferSize
+    global nextRollBufferIndex
+    
+    if nextRollBufferIndex < len(rollBuffer) and len(rollBuffer) != 0: 
+        rollBuffer[nextRollBufferIndex] = roll
+    else:
+        rollBuffer.append(roll)
+    nextRollBufferIndex += 1
+
+    if (nextRollBufferIndex >= rollBufferSize):
+        nextRollBufferIndex = 0
+    
+    runningAverageRoll = 0
+    for i in range(len(rollBuffer)): 
+        runningAverageRoll += rollBuffer[i]
+    
+    runningAverageRoll /= rollBufferSize;
+    print("Roll at normalizeRoll", runningAverageRoll)
+    return runningAverageRoll
+
+def capRoll(roll: float):
+    # Cap the input at 90 Degrees
+    if roll > 1: roll = 1
+    if roll < -1: roll = -1
+    print("Roll at capRoll", roll)
+    return roll
+
+def interpolateRoll(roll: float):
+    roll = np.interp(roll, [-1, 1], [-35, 35])
+    print("Roll at interpolateRoll", roll)
+    return roll
+
+def thresholdRoll(roll: float): 
+    if roll < 1 and roll > -1: roll = 0
+    print("Roll at thresholdRoll", roll)
+    return roll
 
 class TMAdapter(Client):
     def __init__(self) -> None:
         super(TMAdapter, self).__init__()
-        self.onUpdate = None
+        self.last_stepped_time = 0
+        self.update_interval = 10
 
     def on_registered(self, iface: TMInterface) -> None:
         print(f'Registered to {iface.server_name}')
+        RigControl.sendTurnToCommand(0, 2)
+
+    def on_simulation_begin(self, iface: TMInterface):
+        print(f'Started simulation {iface.server_name}')
 
     def on_run_step(self, iface: TMInterface, _time: int):
-        if _time >= 0:
-            state = iface.get_simulation_state()
+        if _time < 0:
+            self.last_stepped_time = 0
+            return 
+        if (_time - self.last_stepped_time) < self.update_interval:
+            return
 
-            print(
-                f'Time: {_time}\n' 
-                f'Display Speed: {state.display_speed}\n'
-                f'Position: {state.position}\n'
-                f'Velocity: {state.velocity}\n'
-                f'YPW: {state.yaw_pitch_roll}\n'
-            )
-            if self.onUpdate:
-                self.onUpdate(state.yaw_pitch_roll)
+        print("##### BEGIN ######")
+        state = iface.get_simulation_state()
+        roll = state.yaw_pitch_roll[2]
+        roll = normalizeRoll(roll)
+        roll = capRoll(roll)
+        roll = interpolateRoll(roll)
+        roll = thresholdRoll(roll)
+        print(
+            f'Time: {_time}\n' 
+            f'Roll: {roll}\n'
+        )
 
+        RigControl.sendTurnToCommand(roll, 2)
+        self.last_stepped_time = _time
+
+        print("##### END ######\n\n\n\n")
+        
+
+        
 
     def attach(self, tmInterfaceNumber: string = ''):
         try:
