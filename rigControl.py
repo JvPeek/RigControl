@@ -14,13 +14,18 @@ class RigControlClass():
         if not isinstance(package_counter, int): 
             raise ValueError("package_counter has to be an integer")
         self.package_counter = package_counter
-    
+
+    def incrementPackageCounter(self):
+        self.package_counter += 1
+        if self.package_counter > 255: 
+            self.package_counter = 0
+
     def sendCommand(self, cmdId: int, payload:bytes = None, debug: bool = False):
         command = bytearray(cmdId.to_bytes(1, byteorder='big'))
         if debug: print(" [sendCommand] Sending command", command)
         command.append(self.package_counter)
         if debug: print(" [sendCommand] Appended package_counter", self.package_counter)
-        self.package_counter += 1
+        self.incrementPackageCounter()
         if debug: print(" [sendCommand] next package_counter will be", self.package_counter)
         if payload != None:
             command.append(len(payload))
@@ -36,17 +41,19 @@ class RigControlClass():
     def sendInitializeInInterfaceCommand(self): 
         self.sendCommand(RigControlClass.COMMAND_INIT, bytes(b'\x00\x00'))
             
-    def sendTurnToCommand(self, targetDegree: int, speedInDegreePerSecond: int):
-        if not isinstance(targetDegree, int): 
-            raise ValueError("targetDegree has to be an integer")
+
+    def sendTurnToCommand(self, targetDegree: float, speedInDegreePerSecond: int):
+        if not isinstance(targetDegree, int) and not isinstance(targetDegree, float): 
+            raise ValueError("targetDegree has to be an integer or float")
         if not isinstance(speedInDegreePerSecond, int): 
             raise ValueError("speedInDegreePerSecond has to be an integer")
         if targetDegree > 180 or targetDegree < -180:
-            raise ValueError("targetDegree cannot be greater than 180 or less than -180")
+            raise ValueError("targetDegree cannot be greater than 180 or less than -180 but is ", targetDegree)
         if speedInDegreePerSecond > 255 or speedInDegreePerSecond < 1:
-            raise ValueError("speedInDegreePerSecond has to be between 1 and 255")
+            raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
         
-        degreeValue = (targetDegree * 10) # needs to be between 1800 or -1800
+        degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
+        print("Degree Value", degreeValue)
         degreeValueBytes = self.convertDegreeValueIntoHighLowBytes(degreeValue)
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')

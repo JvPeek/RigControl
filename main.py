@@ -1,9 +1,6 @@
 from rigControl import RigControl
 from tmAdapter import TMAdapter
 
-
-
-
 def main():
     tmAdapter = TMAdapter()
 
@@ -14,7 +11,6 @@ def main():
     RigControl.sendTurnToCommand(0, 2)
 
     tmAdapter.attach()
-    
 
 if __name__ == '__main__':
     main()
