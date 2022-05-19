@@ -1,6 +1,7 @@
 from functools import reduce
 import serial
 import time
+import threading
 
 
 class RigControlClass():
@@ -18,6 +19,10 @@ class RigControlClass():
         self.arduino.dtr = not(self.arduino.dtr)
 
         # self.serial = serial.Serial(...)
+        self.running = True
+
+        x = threading.Thread(target=self.read_serial_function, args=(1,))
+        x.start()
 
     def setPackageCounter(self, package_counter: int):
         if not isinstance(package_counter, int): 
@@ -77,5 +82,55 @@ class RigControlClass():
         # return bytes((0x69, 0x69))
         ## maybe bytes have to be swapped ? (compare with known values)
         return bytes(((degreeValue >> 8) & 0xff, degreeValue & 0xff))
+
+
+    def read_serial_function(self):
+        while self.running:
+            cmd = ord(self.arduino.read(size=1))
+            id = ord(self.arduino.read(size=1))
+            size = ord(self.arduino.read(size=1))
+            buf = []
+            i =0
+            while i < size:
+                buf.append(self.arduino.read(size=1))
+                i = i+1
+            checksum = ord(self.arduino.read(size=1))
+
+            if cmd==0x74:
+                print ("[FROM RIG:] helo")
+            elif cmd==0xfe:
+                print ("[FROM RIG:] debug: ", end='')
+                for b in buf:
+                    print(b.decode("ascii"), end='')
+                print("")    
+            elif cmd==0xf0:
+                print ("[FROM RIG:] ACK: ", end='')
+                if ord(buf[0]) == 0x00:
+                    print ("[FROM RIG:] OK")
+                elif ord(buf[0]) == 0x01:
+                    print ("[FROM RIG:] Parameter error")
+                elif ord(buf[0]) == 0x02:
+                    print ("[FROM RIG:] Wrong checksum")
+                elif ord(buf[0]) == 0x03:
+                    print ("[FROM RIG:] Not in interface mode")
+                else:
+                    print ("[FROM RIG:] unknown status", end='')
+                    print ("[FROM RIG:]" + hex(ord(buf[0])))
+            else:
+                print("[FROM RIG:] " + "cmd ", end='')
+                print("[FROM RIG:] " + hex(cmd), end='')
+                print("[FROM RIG:] " + ", id ", end='')
+                print("[FROM RIG:] " + hex(id), end='')
+                print("[FROM RIG:] " + ", size ", end='')
+                print("[FROM RIG:] " + size, end='')
+                print("[FROM RIG:] " + ", buf ", end='')
+                for b in buf:
+                    print("[FROM RIG:] " + hex(ord(b)), end='')
+                print("[FROM RIG:] " + ", checksum ", end='')
+                print("[FROM RIG:] " + hex(checksum), end='')
+                print("[FROM RIG:] " + "")    
+
+    def stop(self):
+        self.running = False 
     
 RigControl = RigControlClass()
