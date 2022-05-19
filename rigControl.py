@@ -1,12 +1,21 @@
 from functools import reduce
+import serial
+import time
+
 
 class RigControlClass():
     COMMAND_INIT = 0x01
     COMMAND_TURN_TO = 0x10
+    COMMAND_TURN = 0x11
 
     def __init__(self):
         ## maybe start package_counter at 0x01 instead of 0x00 ?
-        self.package_counter = 0x00
+        self.package_counter = 0x01
+        self.arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200)
+        
+        self.arduino.dtr = not(self.arduino.dtr)
+        time.sleep(0.1)
+        self.arduino.dtr = not(self.arduino.dtr)
 
         # self.serial = serial.Serial(...)
 
@@ -36,7 +45,7 @@ class RigControlClass():
         if debug: print(" [sendCommand] checksum", checksum, "for", command)
         command.append(checksum)
         print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
-        # self.serial.send(command) ?
+        self.arduino.write(command)
     
     def sendInitializeInInterfaceCommand(self): 
         self.sendCommand(RigControlClass.COMMAND_INIT, bytes(b'\x00\x00'))
@@ -59,6 +68,10 @@ class RigControlClass():
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
 
         self.sendCommand(RigControlClass.COMMAND_TURN_TO, degreeValueBytes + speedByte)
+
+    def sendTurnCommand(self, speedInDegreePerSecond: int): 
+        speedInDegreePerSecondBytes = self.convertDegreeValueIntoHighLowBytes(speedInDegreePerSecond)
+        self.sendCommand(RigControlClass.COMMAND_TURN, speedInDegreePerSecondBytes)
 
     def convertDegreeValueIntoHighLowBytes(self, degreeValue: int):
         ## return known byte pair here if conversion does not work:

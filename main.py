@@ -1,16 +1,21 @@
+import time
 from rigControl import RigControl
-from tmAdapter import TMAdapter
+
+
 
 def main():
-    tmAdapter = TMAdapter()
-
-
     RigControl.sendInitializeInInterfaceCommand()
-    RigControl.sendTurnToCommand(60, 2)
-    RigControl.sendTurnToCommand(20, 2)
-    RigControl.sendTurnToCommand(0, 2)
+    time.sleep(0.2)
+    # RigControl.sendTurnToCommand(60, 2)
+    # RigControl.sendTurnToCommand(21.7, 2)
+    # RigControl.sendTurnToCommand(0, 2)    
 
-    tmAdapter.attach()
+    RigControl.sendTurnCommand(1)
+    time.sleep(3)
+    RigControl.sendTurnCommand(-1)
+    time.sleep(3)
+    RigControl.sendTurnCommand(0)
+    
 
 if __name__ == '__main__':
     main()
