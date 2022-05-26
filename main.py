@@ -1,16 +1,14 @@
 from rigControl import RigControl
-from tmAdapter import TMAdapter
 
 def main():
-    tmAdapter = TMAdapter()
+    rigControl = RigControl()
+    rigControl.sendInitializeInInterfaceCommand()
 
+    rigControl.init()
 
-    RigControl.sendInitializeInInterfaceCommand()
-    RigControl.sendTurnToCommand(60, 2)
-    RigControl.sendTurnToCommand(20, 2)
-    RigControl.sendTurnToCommand(0, 2)
-
-    tmAdapter.attach()
+    rigControl.sendTurnToCommand(60, 2)
+    rigControl.sendTurnToCommand(20, 2)
+    rigControl.sendTurnToCommand(0, 2)
 
 if __name__ == '__main__':
     main()
