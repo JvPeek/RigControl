@@ -2,7 +2,7 @@ from functools import reduce
 try:
     import serial
 except ImportError:
-    print("No serial found")
+    print("[ERROR] No serial found")
 
 import time
 import threading
@@ -28,13 +28,14 @@ class RigControl():
             time.sleep(0.1)
             self.arduino.dtr = not(self.arduino.dtr)
 
-            x = threading.Thread(target=self.read_serial_function)
-            x.start()
-        print ("started reading-thread. Will wait for 2sec")
+        x = threading.Thread(target=self.read_serial_function)
+        x.start()
+        print ("[RC] Init complete. Will wait for 2sec")
         time.sleep(2)
 
     def read_serial_function(self):
-        while self.runningReadSerial:
+        print ("[THREAD] starting to read from serial")
+        while self.runningReadSerial and not self.no_serial:
             cmd = ord(self.arduino.read(size=1))
             id = ord(self.arduino.read(size=1))
             size = ord(self.arduino.read(size=1))
@@ -79,6 +80,8 @@ class RigControl():
                 print(hex(checksum), end='')
                 print("")    
 
+        print ("[THREAD] stopped")
+
 
 
     def setPackageCounter(self, package_counter: int):
@@ -106,7 +109,7 @@ class RigControl():
         checksum = reduce(lambda x,y: x^y, command, 0x00)
         if debug: print(" [sendCommand] checksum", checksum, "for", command)
         command.append(checksum)
-        print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
+        print("[RC] would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
             self.arduino.write(command)
     
@@ -125,7 +128,7 @@ class RigControl():
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
         
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
-        print("Degree Value", degreeValue)
+        print("  [sendTurnToCommand] Degree Value", degreeValue)
         degreeValueBytes = self.convertDegreeValueIntoHighLowBytes(degreeValue)
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
