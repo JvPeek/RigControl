@@ -84,7 +84,7 @@ class RigControl():
     def incrementPackageCounter(self):
         self.package_counter += 1
         if self.package_counter > 255: 
-            self.package_counter = 0
+            self.package_counter = 1
 
     def sendCommand(self, cmdId: int, payload:bytes = None, debug: bool = False):
         command = bytearray(cmdId.to_bytes(1, byteorder='big'))
