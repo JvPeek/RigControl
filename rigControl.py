@@ -20,10 +20,9 @@ class RigControl():
         
 
     def init(self):
-        print(self.arduino)
         if not self.no_serial: 
             self.arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200)
-            
+        
             self.arduino.dtr = not(self.arduino.dtr)
             time.sleep(0.1)
             self.arduino.dtr = not(self.arduino.dtr)
