@@ -17,6 +17,7 @@ class RigControl():
         self.package_counter = 0x01
         self.no_serial = False
         self.arduino = None
+        self.runningReadSerial = True
         
 
     def init(self):
@@ -26,8 +27,6 @@ class RigControl():
             self.arduino.dtr = not(self.arduino.dtr)
             time.sleep(0.1)
             self.arduino.dtr = not(self.arduino.dtr)
-
-            self.runningReadSerial = True
 
             x = threading.Thread(target=self.read_serial_function)
             x.start()
