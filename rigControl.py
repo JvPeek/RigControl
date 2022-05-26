@@ -3,7 +3,7 @@ import serial
 import time
 
 
-class RigControlClass():
+class RigControl():
     COMMAND_INIT = 0x01
     COMMAND_TURN_TO = 0x10
     COMMAND_TURN = 0x11
@@ -48,7 +48,7 @@ class RigControlClass():
         self.arduino.write(command)
     
     def sendInitializeInInterfaceCommand(self): 
-        self.sendCommand(RigControlClass.COMMAND_INIT, bytes(b'\x00\x00'))
+        self.sendCommand(RigControl.COMMAND_INIT, bytes(b'\x00\x00'))
             
 
     def sendTurnToCommand(self, targetDegree: float, speedInDegreePerSecond: int):
@@ -67,16 +67,14 @@ class RigControlClass():
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
 
-        self.sendCommand(RigControlClass.COMMAND_TURN_TO, degreeValueBytes + speedByte)
+        self.sendCommand(RigControl.COMMAND_TURN_TO, degreeValueBytes + speedByte)
 
     def sendTurnCommand(self, speedInDegreePerSecond: int): 
         speedInDegreePerSecondBytes = self.convertDegreeValueIntoHighLowBytes(speedInDegreePerSecond)
-        self.sendCommand(RigControlClass.COMMAND_TURN, speedInDegreePerSecondBytes)
+        self.sendCommand(RigControl.COMMAND_TURN, speedInDegreePerSecondBytes)
 
     def convertDegreeValueIntoHighLowBytes(self, degreeValue: int):
         ## return known byte pair here if conversion does not work:
         # return bytes((0x69, 0x69))
         ## maybe bytes have to be swapped ? (compare with known values)
         return bytes(((degreeValue >> 8) & 0xff, degreeValue & 0xff))
-    
-RigControl = RigControlClass()
