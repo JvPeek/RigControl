@@ -8,6 +8,8 @@ def main():
     rigControl = RigControl()
     tmAdapter = TMAdapter()
 
+    rigControl.init()
+
     rigControl.sendInitializeInInterfaceCommand()
     time.sleep(0.2)
 
