@@ -16,9 +16,11 @@ class RigControl():
     def __init__(self):
         self.package_counter = 0x01
         self.no_serial = False
+        self.arduino = None
         
 
     def init(self):
+        print(self.arduino)
         if not self.no_serial: 
             self.arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200)
             

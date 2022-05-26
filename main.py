@@ -4,9 +4,9 @@ import time
 def main():
     rigControl = RigControl()
     # rigControl.no_serial = True
-    rigControl.sendInitializeInInterfaceCommand()
-
     rigControl.init()
+
+    rigControl.sendInitializeInInterfaceCommand()
 
     rigControl.sendTurnToCommand(60, 2)
     rigControl.sendTurnToCommand(20, 2)
