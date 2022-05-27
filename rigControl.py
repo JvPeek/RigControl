@@ -22,7 +22,7 @@ class RigControl():
 
     def init(self):
         if not self.no_serial: 
-            self.arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200)
+            self.arduino = serial.Serial(port='/dev/cu.usbmodem11201', baudrate=115200)
         
             self.arduino.dtr = not(self.arduino.dtr)
             time.sleep(0.1)
@@ -46,15 +46,18 @@ class RigControl():
                 i = i+1
             checksum = ord(self.arduino.read(size=1))
 
+            
+
             if cmd==0x74:
-                print ("helo")
+                # print ("[READ] helo")
+                pass
             elif cmd==0xfe:
-                print ("debug: ", end='')
+                print ("[READ] debug: ", end='')
                 for b in buf:
                     print(b.decode("ascii"), end='')
                 print("")    
             elif cmd==0xf0:
-                print ("ACK: ", end='')
+                print ("[READ] ACK: ", end='')
                 if ord(buf[0]) == 0x00:
                     print ("OK")
                 elif ord(buf[0]) == 0x01:
@@ -67,7 +70,7 @@ class RigControl():
                     print ("unknown status", end='')
                     print (hex(ord(buf[0])))
             else:
-                print("cmd ", end='')
+                print("[READ] cmd ", end='')
                 print(hex(cmd), end='')
                 print(", id ", end='')
                 print(hex(id), end='')
@@ -106,7 +109,7 @@ class RigControl():
             command.extend(payload)
             if debug: print(" [sendCommand] Added payload of length", len(payload), "with value", payload)
 
-        checksum = reduce(lambda x,y: x^y, command, 0x00)
+        checksum = self.calculateChecksum(command)
         if debug: print(" [sendCommand] checksum", checksum, "for", command)
         command.append(checksum)
         print("[RC] would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
@@ -129,17 +132,20 @@ class RigControl():
         
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
         print("  [sendTurnToCommand] Degree Value", degreeValue)
-        degreeValueBytes = self.convertDegreeValueIntoHighLowBytes(degreeValue)
+        degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
 
         self.sendCommand(RigControl.COMMAND_TURN_TO, degreeValueBytes + speedByte)
 
     def sendTurnCommand(self, speedInDegreePerSecond: int): 
-        speedInDegreePerSecondBytes = self.convertDegreeValueIntoHighLowBytes(speedInDegreePerSecond)
+        speedInDegreePerSecondBytes = self.convertSignedValueIntoHighLowBytes(speedInDegreePerSecond)
         self.sendCommand(RigControl.COMMAND_TURN, speedInDegreePerSecondBytes)
 
-    def convertDegreeValueIntoHighLowBytes(self, degreeValue: int):
+    def calculateChecksum(self, bytes):
+        return reduce(lambda x,y: x^y, bytes, 0x00)
+
+    def convertSignedValueIntoHighLowBytes(self, degreeValue: int):
         ## return known byte pair here if conversion does not work:
         # return bytes((0x69, 0x69))
         ## maybe bytes have to be swapped ? (compare with known values)

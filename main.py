@@ -9,11 +9,12 @@ def main():
     rigControl.sendInitializeInInterfaceCommand()
 
     rigControl.sendTurnToCommand(60, 2)
+    time.sleep(3)
     rigControl.sendTurnToCommand(20, 2)
+    time.sleep(3)
     rigControl.sendTurnToCommand(0, 2)
+    time.sleep(3)
 
-
-    time.sleep(2)
     rigControl.runningReadSerial = False
 
 if __name__ == '__main__':
