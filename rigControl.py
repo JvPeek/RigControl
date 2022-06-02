@@ -16,20 +16,19 @@ class RigControl():
     def __init__(self):
         self.package_counter = 0x01
         self.no_serial = False
+        self.runningReadSerial = True
+        self.arduino = serial.Serial(port='COM5', baudrate=115200)
         
 
     def init(self):
-        if not self.no_serial: 
-            self.arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200)
-            
-            self.arduino.dtr = not(self.arduino.dtr)
-            time.sleep(0.1)
-            self.arduino.dtr = not(self.arduino.dtr)
+        # if not self.no_serial: 
+        
+        self.arduino.dtr = not(self.arduino.dtr)
+        time.sleep(0.1)
+        self.arduino.dtr = not(self.arduino.dtr)
 
-            self.runningReadSerial = True
-
-            x = threading.Thread(target=self.read_serial_function)
-            x.start()
+        x = threading.Thread(target=self.read_serial_function)
+        x.start()
         print ("started reading-thread. Will wait for 2sec")
         time.sleep(2)
 
@@ -178,6 +177,9 @@ class RigControl():
         if speedInDegreePerSecond > 255 or speedInDegreePerSecond < 1:
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
         
+        if targetDegree == 0:
+            targetDegree = 1
+
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
         print("Degree Value", degreeValue)
         degreeValueBytes = self.convertDegreeValueIntoHighLowBytes(degreeValue)

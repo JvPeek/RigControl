@@ -49,14 +49,15 @@ def thresholdRoll(roll: float):
     return roll
 
 class TMAdapter(Client):
-    def __init__(self) -> None:
+    def __init__(self, rigControl) -> None:
         super(TMAdapter, self).__init__()
         self.last_stepped_time = 0
         self.update_interval = 10
+        self.rigControl = rigControl
 
     def on_registered(self, iface: TMInterface) -> None:
         print(f'Registered to {iface.server_name}')
-        RigControl.sendTurnToCommand(0, 2)
+        self.rigControl.sendTurnToCommand(0, 2)
 
     def on_simulation_begin(self, iface: TMInterface):
         print(f'Started simulation {iface.server_name}')
@@ -75,12 +76,15 @@ class TMAdapter(Client):
         roll = capRoll(roll)
         roll = interpolateRoll(roll)
         roll = thresholdRoll(roll)
+
+        roll = roll * -1
+
         print(
             f'Time: {_time}\n' 
             f'Roll: {roll}\n'
         )
 
-        RigControl.sendTurnToCommand(roll, 2)
+        self.rigControl.sendTurnToCommand(roll, 15)
         self.last_stepped_time = _time
 
         print("##### END ######\n\n\n\n")
