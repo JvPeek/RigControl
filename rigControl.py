@@ -8,6 +8,18 @@ import time
 import threading
 
 
+def ackReturnCodeToString(code):
+    if ord(code) == 0x00:
+        return "OK"
+    elif ord(code) == 0x01:
+        return "Parameter error"
+    elif ord(code) == 0x02:
+        return "Wrong checksum"
+    elif ord(code) == 0x03:
+        return "Not in interface mode"
+    else:
+        return "unknown status: " + hex(ord(code))
+
 class RigControl():
     COMMAND_INIT = 0x01
     COMMAND_TURN_TO = 0x10
@@ -40,48 +52,28 @@ class RigControl():
             id = ord(self.arduino.read(size=1))
             size = ord(self.arduino.read(size=1))
             buf = []
-            i =0
-            while i < size:
+            for _ in range(size):
                 buf.append(self.arduino.read(size=1))
-                i = i+1
             checksum = ord(self.arduino.read(size=1))
 
-            
-
-            if cmd==0x74:
-                # print ("[READ] helo")
+            if cmd == 0x01:
+                print ("[READ] init: Status="+ackReturnCodeToString(buf[0])+" V="+hex(ord(buf[1]))+"."+hex(ord(buf[2])), end='')
+                print (" SN="+hex(ord(buf[3]))+" "+hex(ord(buf[4]))+" "+hex(ord(buf[5]))+" "+hex(ord(buf[6])))
+            elif cmd==0x74:
+                #print ("[READ] helo")
                 pass
             elif cmd==0xfe:
                 print ("[READ] debug: ", end='')
                 for b in buf:
                     print(b.decode("ascii"), end='')
                 print("")    
-            elif cmd==0xf0:
-                print ("[READ] ACK: ", end='')
-                if ord(buf[0]) == 0x00:
-                    print ("OK")
-                elif ord(buf[0]) == 0x01:
-                    print ("Parameter error")
-                elif ord(buf[0]) == 0x02:
-                    print ("Wrong checksum")
-                elif ord(buf[0]) == 0x03:
-                    print ("Not in interface mode")
-                else:
-                    print ("unknown status", end='')
-                    print (hex(ord(buf[0])))
+            elif cmd==0xf011:
+                print ("[READ] ACK: ", ackReturnCodeToString(buf[0]))
             else:
-                print("[READ] cmd ", end='')
-                print(hex(cmd), end='')
-                print(", id ", end='')
-                print(hex(id), end='')
-                print(", size ", end='')
-                print(size, end='')
-                print(", buf ", end='')
+                print("[READ] cmd ", hex(cmd), ", id ", hex(id), ", size ", size, ", buf ", end='')
                 for b in buf:
                     print(hex(ord(b)), end='')
-                print(", checksum ", end='')
-                print(hex(checksum), end='')
-                print("")    
+                print(", checksum ", hex(checksum))
 
         print ("[THREAD] stopped")
 
@@ -112,11 +104,12 @@ class RigControl():
         checksum = self.calculateChecksum(command)
         if debug: print(" [sendCommand] checksum", checksum, "for", command)
         command.append(checksum)
-        print("[RC] would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
+        if debug: print("[RC] would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
             self.arduino.write(command)
     
     def sendInitializeInInterfaceCommand(self): 
+        print("[RC] Sending initialize Interface")
         self.sendCommand(RigControl.COMMAND_INIT, bytes(b'\x00\x00'))
             
 
@@ -131,7 +124,7 @@ class RigControl():
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
         
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
-        print("  [sendTurnToCommand] Degree Value", degreeValue)
+        #print("  [sendTurnToCommand] Degree Value", degreeValue)
         degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')

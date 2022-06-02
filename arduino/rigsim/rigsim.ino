@@ -1,6 +1,9 @@
 // DEBUG is used when attached to serial monitor 
 #define DEBUG false
 
+#include "command.h"
+
+
 void setup() {
   Serial.begin(115200);
   while (!Serial) {
@@ -11,10 +14,22 @@ void setup() {
   sendDebug("sent from sim-rig");
 }
 
-void loop() {
 
-  sendHelo();
-  sendDebug("in loop");
+
+void loop() {
+  if(Serial.available() > 0) {
+    RecievedCommand receivedCommand = readCommand();
+    switch(receivedCommand.type) {
+      case 0x01: // INIT
+        sendInit(receivedCommand.id, P_ACK_OK);
+      default: 
+        // sendAck(receivedCommand.id, P_ACK_PARAMETER_ERROR);
+        sendDebug("unknown command type");
+    }
+  }
+
+  // sendHelo();
+  // sendDebug("in loop");
   // sendAck(P_ACK_OK);
   // sendAck(P_ACK_PARAMETER_ERROR);
   // sendAck(P_ACK_WRONG_CHECKSUM);
