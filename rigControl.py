@@ -17,8 +17,8 @@ class RigControl():
         self.package_counter = 0x01
         self.no_serial = False
         self.runningReadSerial = True
-        self.arduino = serial.Serial(port='COM5', baudrate=115200)
-        
+        self.arduino = serial.Serial(port='/dev/cu.usbmodem11201', baudrate=115200)
+        self.nextCommandToSend = None
 
     def init(self):
         # if not self.no_serial: 
@@ -88,6 +88,10 @@ class RigControl():
 
     def read_serial_function(self):
         while self.runningReadSerial:
+            if self.nextCommandToSend != None:
+                self.arduino.write(self.nextCommandToSend)
+                self.nextCommandToSend = None
+
             cmd = ord(self.arduino.read(size=1))
             id = ord(self.arduino.read(size=1))
             size = ord(self.arduino.read(size=1))
@@ -161,7 +165,8 @@ class RigControl():
         command.append(checksum)
         print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
-            self.arduino.write(command)
+            self.nextCommandToSend = command
+            # self.arduino.write(command)
     
     def sendInitializeInInterfaceCommand(self): 
         self.sendCommand(RigControl.COMMAND_INIT, bytes(b'\x00\x00'))
