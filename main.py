@@ -1,4 +1,5 @@
 import time
+from monkeyAdapter import MonkeyAdapter
 from rigControl import RigControl
 from wtAdapter import WTAdapter
 
@@ -16,9 +17,8 @@ def main():
     # print("wating...")
     # time.sleep(10)
 
-    wtAdapter = WTAdapter(rigControl)
-
-    wtAdapter.read_state()
+    monkeyAdapter = MonkeyAdapter(rigControl)
+    monkeyAdapter.start()
     
 if __name__ == '__main__':
     main()

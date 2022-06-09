@@ -7,7 +7,6 @@ except ImportError:
 import time
 import threading
 
-
 class RigControl():
     COMMAND_INIT = 0x01
     COMMAND_TURN_TO = 0x10
@@ -34,60 +33,6 @@ class RigControl():
 
     def read_serial_function(self):
         while self.runningReadSerial:
-            cmd = ord(self.arduino.read(size=1))
-            id = ord(self.arduino.read(size=1))
-            size = ord(self.arduino.read(size=1))
-            buf = []
-            i =0
-            while i < size:
-                buf.append(self.arduino.read(size=1))
-                i = i+1
-            checksum = ord(self.arduino.read(size=1))
-
-            if cmd==0x74:
-                print ("helo")
-            elif cmd==0xfe:
-                print ("debug: ", end='')
-                for b in buf:
-                    print(b.decode("ascii"), end='')
-                print("")    
-            elif cmd==0xf0:
-                print ("ACK: ", end='')
-                if ord(buf[0]) == 0x00:
-                    print ("OK")
-                elif ord(buf[0]) == 0x01:
-                    print ("Parameter error")
-                elif ord(buf[0]) == 0x02:
-                    print ("Wrong checksum")
-                elif ord(buf[0]) == 0x03:
-                    print ("Not in interface mode")
-                else:
-                    print ("unknown status", end='')
-                    print (hex(ord(buf[0])))
-            else:
-                print("cmd ", end='')
-                print(hex(cmd), end='')
-                print(", id ", end='')
-                print(hex(id), end='')
-                print(", size ", end='')
-                print(size, end='')
-                print(", buf ", end='')
-                for b in buf:
-                    print(hex(ord(b)), end='')
-                print(", checksum ", end='')
-                print(hex(checksum), end='')
-                print("")    
-
-
-
-    def init(self):
-        x = threading.Thread(target=self.read_serial_function)
-        x.start()
-        print ("started reading-thread. Will wait for 2sec")
-        time.sleep(2)
-
-    def read_serial_function(self):
-        while self.runningReadSerial:
             if self.nextCommandToSend != None:
                 self.arduino.write(self.nextCommandToSend)
                 self.nextCommandToSend = None
@@ -101,9 +46,10 @@ class RigControl():
                 buf.append(self.arduino.read(size=1))
                 i = i+1
             checksum = ord(self.arduino.read(size=1))
-
+            continue
             if cmd==0x74:
-                print ("helo")
+                # print ("helo")
+                pass
             elif cmd==0xfe:
                 print ("debug: ", end='')
                 for b in buf:
@@ -163,7 +109,7 @@ class RigControl():
         checksum = reduce(lambda x,y: x^y, command, 0x00)
         if debug: print(" [sendCommand] checksum", checksum, "for", command)
         command.append(checksum)
-        print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
+        ## print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
             self.nextCommandToSend = command
             # self.arduino.write(command)
@@ -183,7 +129,7 @@ class RigControl():
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
         
         if targetDegree == 0:
-            targetDegree = 1
+            targetDegree = 0.1
 
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
         print("Degree Value", degreeValue)
