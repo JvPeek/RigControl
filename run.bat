@@ -1,0 +1,1 @@
+py C:\Users\user\Downloads\RigControl-trackmania\RigControl-trackmania\main.py

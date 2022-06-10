@@ -1,22 +1,25 @@
-from rigControl import RigControl
 import time
+from monkeyAdapter import MonkeyAdapter
+from rigControl import RigControl
+from wtAdapter import WTAdapter
+
 
 def main():
     rigControl = RigControl()
-    # rigControl.no_serial = True
+    # # rigControl.no_serial = True
+
     rigControl.init()
 
     rigControl.sendInitializeInInterfaceCommand()
+    time.sleep(2)
+    # rigControl.sendTurnToCommand(0, 2)
 
-    rigControl.sendTurnToCommand(60, 2)
-    time.sleep(3)
-    rigControl.sendTurnToCommand(20, 2)
-    time.sleep(3)
-    rigControl.sendTurnToCommand(0, 2)
-    time.sleep(3)
+    # print("wating...")
+    # time.sleep(10)
 
-    rigControl.runningReadSerial = False
-
+    monkeyAdapter = MonkeyAdapter(rigControl)
+    monkeyAdapter.start()
+    
 if __name__ == '__main__':
     main()
     

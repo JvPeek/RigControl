@@ -1,24 +1,13 @@
 from functools import reduce
 try:
     import serial
+    import serial.tools.list_ports
+
 except ImportError:
     print("[ERROR] No serial found")
 
 import time
 import threading
-
-
-def ackReturnCodeToString(code):
-    if ord(code) == 0x00:
-        return "OK"
-    elif ord(code) == 0x01:
-        return "Parameter error"
-    elif ord(code) == 0x02:
-        return "Wrong checksum"
-    elif ord(code) == 0x03:
-        return "Not in interface mode"
-    else:
-        return "unknown status: " + hex(ord(code))
 
 class RigControl():
     COMMAND_INIT = 0x01
@@ -28,39 +17,51 @@ class RigControl():
     def __init__(self):
         self.package_counter = 0x01
         self.no_serial = False
-        self.arduino = None
         self.runningReadSerial = True
-        
+        self.serial = serial.Serial(port=self.getSerialPort(), baudrate=115200)
+        self.nextCommandToSend = None
+
+    def getSerialPort(self):
+        ports = serial.tools.list_ports.comports()
+
+        for port, desc, hwid in sorted(ports):
+                print("{}: {} [{}]".format(port, desc, hwid))
+
+
+
+
+        return '/dev/cu.usbserial-1130'
 
     def init(self):
-        if not self.no_serial: 
-            self.arduino = serial.Serial(port='/dev/cu.usbmodem11201', baudrate=115200)
+        # if not self.no_serial: 
         
-            self.arduino.dtr = not(self.arduino.dtr)
-            time.sleep(0.1)
-            self.arduino.dtr = not(self.arduino.dtr)
+        self.serial.dtr = not(self.serial.dtr)
+        time.sleep(0.1)
+        self.serial.dtr = not(self.serial.dtr)
 
         x = threading.Thread(target=self.read_serial_function)
         x.start()
-        print ("[RC] Init complete. Will wait for 2sec")
+        print ("started reading-thread. Will wait for 2sec")
         time.sleep(2)
 
     def read_serial_function(self):
-        print ("[THREAD] starting to read from serial")
-        while self.runningReadSerial and not self.no_serial:
-            cmd = ord(self.arduino.read(size=1))
-            id = ord(self.arduino.read(size=1))
-            size = ord(self.arduino.read(size=1))
-            buf = []
-            for _ in range(size):
-                buf.append(self.arduino.read(size=1))
-            checksum = ord(self.arduino.read(size=1))
+        while self.runningReadSerial:
+            if self.nextCommandToSend != None:
+                self.serial.write(self.nextCommandToSend)
+                self.nextCommandToSend = None
 
-            if cmd == 0x01:
-                print ("[READ] init: Status="+ackReturnCodeToString(buf[0])+" V="+hex(ord(buf[1]))+"."+hex(ord(buf[2])), end='')
-                print (" SN="+hex(ord(buf[3]))+" "+hex(ord(buf[4]))+" "+hex(ord(buf[5]))+" "+hex(ord(buf[6])))
-            elif cmd==0x74:
-                #print ("[READ] helo")
+            cmd = ord(self.serial.read(size=1))
+            id = ord(self.serial.read(size=1))
+            size = ord(self.serial.read(size=1))
+            buf = []
+            i =0
+            while i < size:
+                buf.append(self.serial.read(size=1))
+                i = i+1
+            checksum = ord(self.serial.read(size=1))
+            continue
+            if cmd==0x74:
+                # print ("helo")
                 pass
             elif cmd==0xfe:
                 print ("[READ] debug: ", end='')
@@ -104,9 +105,10 @@ class RigControl():
         checksum = self.calculateChecksum(command)
         if debug: print(" [sendCommand] checksum", checksum, "for", command)
         command.append(checksum)
-        if debug: print("[RC] would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
+        ## print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
-            self.arduino.write(command)
+            self.nextCommandToSend = command
+            # self.serial.write(command)
     
     def sendInitializeInInterfaceCommand(self): 
         print("[RC] Sending initialize Interface")
@@ -123,6 +125,9 @@ class RigControl():
         if speedInDegreePerSecond > 255 or speedInDegreePerSecond < 1:
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
         
+        # if targetDegree == 0:
+        #     targetDegree = 0.1
+
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
         #print("  [sendTurnToCommand] Degree Value", degreeValue)
         degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
