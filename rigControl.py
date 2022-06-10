@@ -1,6 +1,8 @@
 from functools import reduce
 try:
     import serial
+    import serial.tools.list_ports
+
 except ImportError:
     print("No serial found")
 
@@ -16,15 +18,26 @@ class RigControl():
         self.package_counter = 0x01
         self.no_serial = False
         self.runningReadSerial = True
-        self.arduino = serial.Serial(port='/dev/cu.usbmodem11201', baudrate=115200)
+        self.serial = serial.Serial(port=self.getSerialPort(), baudrate=115200)
         self.nextCommandToSend = None
+
+    def getSerialPort(self):
+        ports = serial.tools.list_ports.comports()
+
+        for port, desc, hwid in sorted(ports):
+                print("{}: {} [{}]".format(port, desc, hwid))
+
+
+
+
+        return '/dev/cu.usbserial-1130'
 
     def init(self):
         # if not self.no_serial: 
         
-        self.arduino.dtr = not(self.arduino.dtr)
+        self.serial.dtr = not(self.serial.dtr)
         time.sleep(0.1)
-        self.arduino.dtr = not(self.arduino.dtr)
+        self.serial.dtr = not(self.serial.dtr)
 
         x = threading.Thread(target=self.read_serial_function)
         x.start()
@@ -34,18 +47,18 @@ class RigControl():
     def read_serial_function(self):
         while self.runningReadSerial:
             if self.nextCommandToSend != None:
-                self.arduino.write(self.nextCommandToSend)
+                self.serial.write(self.nextCommandToSend)
                 self.nextCommandToSend = None
 
-            cmd = ord(self.arduino.read(size=1))
-            id = ord(self.arduino.read(size=1))
-            size = ord(self.arduino.read(size=1))
+            cmd = ord(self.serial.read(size=1))
+            id = ord(self.serial.read(size=1))
+            size = ord(self.serial.read(size=1))
             buf = []
             i =0
             while i < size:
-                buf.append(self.arduino.read(size=1))
+                buf.append(self.serial.read(size=1))
                 i = i+1
-            checksum = ord(self.arduino.read(size=1))
+            checksum = ord(self.serial.read(size=1))
             continue
             if cmd==0x74:
                 # print ("helo")
@@ -112,7 +125,7 @@ class RigControl():
         ## print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
             self.nextCommandToSend = command
-            # self.arduino.write(command)
+            # self.serial.write(command)
     
     def sendInitializeInInterfaceCommand(self): 
         self.sendCommand(RigControl.COMMAND_INIT, bytes(b'\x00\x00'))
@@ -128,8 +141,8 @@ class RigControl():
         if speedInDegreePerSecond > 255 or speedInDegreePerSecond < 1:
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
         
-        if targetDegree == 0:
-            targetDegree = 0.1
+        # if targetDegree == 0:
+        #     targetDegree = 0.1
 
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
         print("Degree Value", degreeValue)
