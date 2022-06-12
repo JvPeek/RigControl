@@ -5,7 +5,7 @@ import threading
 import datetime
 import time
 
-from rigControl import RigControl
+from rigControl.rigControl import RigControl
 
 def map(value, leftMin, leftMax, rightMin, rightMax):
     # Figure out how 'wide' each range is

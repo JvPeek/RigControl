@@ -4,7 +4,7 @@ import math
 import time
 import threading
 from adapter.AdapterInterface import AdapterInterface
-from rigControl import RigControl
+from rigControl.rigControl import RigControl
 
 
 def offsetToFloat (buffer, offset, length):

@@ -1,7 +1,7 @@
 import string
 from tminterface.interface import TMInterface
 from tminterface.client import Client, run_client
-from rigControl import RigControl
+from rigControl.rigControl import RigControl
 import numpy as np
 
 rollBuffer = []

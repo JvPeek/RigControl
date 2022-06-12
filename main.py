@@ -1,12 +1,12 @@
 import time
 from adapter.monkey import MonkeyAdapter
-from rigControl import RigControl
+from rigControl.rigControl import RigControl
 import os
 from utils import getAdapters
  
 
 def main():
-    rigControl = RigControl("/dev/cu.usbserial-1120")
+    rigControl = RigControl("/dev/cu.usbmodem11201")
     #rigControl.no_serial = True
 
     rigControl.init()
@@ -18,8 +18,13 @@ def main():
     # print("wating...")
     # time.sleep(10)
 
-    monkeyAdapter = MonkeyAdapter(rigControl)
-    monkeyAdapter.start()
+    # monkeyAdapter = MonkeyAdapter(rigControl)
+    # monkeyAdapter.start()
+
+    while True:
+        for i in range(10):
+            rigControl.sendTurnToCommand(i * 1, 5)
+            time.sleep(0.1)
     
 if __name__ == '__main__':
     main()

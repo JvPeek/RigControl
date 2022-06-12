@@ -1,7 +1,7 @@
 #!python3
 import argparse
 from utils import getAdapters, getAvailablePorts
-from rigControl import RigControl
+from rigControl.rigControl import RigControl
 
 
 def argumentCommand(args):
