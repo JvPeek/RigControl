@@ -8,29 +8,20 @@ except ImportError:
 
 import time
 import threading
+import logging
 
 class RigControl():
     COMMAND_INIT = 0x01
     COMMAND_TURN_TO = 0x10
     COMMAND_TURN = 0x11
 
-    def __init__(self):
+    def __init__(self, serialport):
+        self.log = logging.getLogger(f"RigControl")
         self.package_counter = 0x01
         self.no_serial = False
         self.runningReadSerial = True
-        self.serial = serial.Serial(port=self.getSerialPort(), baudrate=115200)
+        self.serial = serial.Serial(port=serialport, baudrate=115200)
         self.nextCommandToSend = None
-
-    def getSerialPort(self):
-        ports = serial.tools.list_ports.comports()
-
-        for port, desc, hwid in sorted(ports):
-                print("{}: {} [{}]".format(port, desc, hwid))
-
-
-
-
-        return '/dev/cu.usbserial-1130'
 
     def init(self):
         # if not self.no_serial: 
@@ -41,10 +32,13 @@ class RigControl():
 
         x = threading.Thread(target=self.read_serial_function)
         x.start()
-        print ("started reading-thread. Will wait for 2sec")
+        self.log.info("started reading-thread. Will wait for 2sec")
         time.sleep(2)
 
     def read_serial_function(self):
+
+        lastDebugMessage = None
+
         while self.runningReadSerial:
             if self.nextCommandToSend != None:
                 self.serial.write(self.nextCommandToSend)
@@ -59,24 +53,28 @@ class RigControl():
                 buf.append(self.serial.read(size=1))
                 i = i+1
             checksum = ord(self.serial.read(size=1))
-            continue
+            
             if cmd==0x74:
                 # print ("helo")
                 pass
             elif cmd==0xfe:
-                print ("[READ] debug: ", end='')
+                message = "[READ] debug: "
                 for b in buf:
-                    print(b.decode("ascii"), end='')
-                print("")    
-            elif cmd==0xf011:
-                print ("[READ] ACK: ", ackReturnCodeToString(buf[0]))
+                    message += b.decode("ascii")
+                if message != lastDebugMessage:
+                    lastDebugMessage = message
+                    print(message)    
+            elif cmd==0xf0:
+                print ("[READ] ACK: ", buf[0])
+                pass
             else:
-                print("[READ] cmd ", hex(cmd), ", id ", hex(id), ", size ", size, ", buf ", end='')
+                #print("[READ] cmd ", hex(cmd), ", id ", hex(id), ", size ", size, ", buf ", end='')
                 for b in buf:
-                    print(hex(ord(b)), end='')
-                print(", checksum ", hex(checksum))
+                    pass
+                    #print(hex(ord(b)), end='')
+                #print(", checksum ", hex(checksum))
 
-        print ("[THREAD] stopped")
+        self.log.info("[THREAD] stopped")
 
 
 
@@ -129,7 +127,7 @@ class RigControl():
         #     targetDegree = 0.1
 
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
-        #print("  [sendTurnToCommand] Degree Value", degreeValue)
+        print("  [sendTurnToCommand] Degree Value", degreeValue)
         degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')

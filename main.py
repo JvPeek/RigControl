@@ -1,17 +1,18 @@
 import time
-from monkeyAdapter import MonkeyAdapter
+from adapter.monkey import MonkeyAdapter
 from rigControl import RigControl
-from wtAdapter import WTAdapter
-
+import os
+from utils import getAdapters
+ 
 
 def main():
-    rigControl = RigControl()
-    # # rigControl.no_serial = True
+    rigControl = RigControl("/dev/cu.usbserial-1120")
+    #rigControl.no_serial = True
 
     rigControl.init()
 
     rigControl.sendInitializeInInterfaceCommand()
-    time.sleep(2)
+    time.sleep(3)
     # rigControl.sendTurnToCommand(0, 2)
 
     # print("wating...")
