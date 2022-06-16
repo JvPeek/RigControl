@@ -30,13 +30,19 @@ class MonkeyAdapter(AdapterInterface):
         super().__init__()
         self.rigUpdateIntervalInMS = 100
         self.rigControl = rigControl
-        self.stopReadStateThread = False
+        self.stopThreads = False
+
+        self.targetRigAngle = 0.0
+        self.targetRigSpeed = 4
 
     def start(self): 
-        readStateThread = threading.Thread(target=self.read_state)
-        readStateThread.start() 
+        readStateThread = threading.Thread(target=self.readState)
+        readStateThread.start()
 
-    def read_state(self):
+        updateRigThread = threading.Thread(target=self.updateRig)
+        updateRigThread.start()
+
+    def readState(self):
         serverIp = "0.0.0.0"
         serverPort = 12001
         receiveBufferSize = 1024
@@ -46,20 +52,23 @@ class MonkeyAdapter(AdapterInterface):
         serverSocket.bind((serverIp, serverPort))
         self.log.info(f'UDP server up and listening on {serverIp}:{serverPort}')
 
-        lastRigUpdateTime = getTimeAsMS()
-
-        while(not self.stopReadStateThread):
+        while(not self.stopThreads):
             (message, _retAddress) = serverSocket.recvfrom(receiveBufferSize) 
+            
+            rollInRadians = offsetToFloat(message, 16, 4)
+            roll = math.degrees(rollInRadians)
+            self.log.info("\t\t\tGot update from SpaceMonkey", roll, rollInRadians)
+            self.targetRigAngle = roll
+
+    def updateRig(self):
+        lastRigUpdateTime = getTimeAsMS()
+        while(not self.stopThreads):
             newRigUpdateTime = getTimeAsMS()
             if(newRigUpdateTime < lastRigUpdateTime + self.rigUpdateIntervalInMS):
                 continue
-            rollInRadians = offsetToFloat(message, 16, 4)
-            roll = math.degrees(rollInRadians)
-            print("roll", roll, rollInRadians, newRigUpdateTime)
+            lastRigUpdateTime = newRigUpdateTime
 
-            
-                # pass
-            self.rigControl.sendTurnToCommand(roll, 4)
+            self.rigControl.sendTurnToCommand(self.targetRigAngle, self.targetRigSpeed)
 
     def stop(self):
-        self.stopReadStateThread = True
+        self.stopThreads = True

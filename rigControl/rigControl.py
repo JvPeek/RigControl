@@ -9,6 +9,8 @@ except ImportError:
 import time
 import threading
 import logging
+from datetime import datetime
+
 
 class RigControl():
     COMMAND_INIT = 0x01
@@ -22,6 +24,8 @@ class RigControl():
         self.runningReadSerial = True
         self.serial = serial.Serial(port=serialport, baudrate=115200)
         self.awaitingAck = list()
+
+        self.logFileHandler = open("./reading.log", "a")
 
     def init(self):
         # if not self.no_serial: 
@@ -37,9 +41,12 @@ class RigControl():
     def read_serial_function(self):
 
         lastDebugMessage = None
-
+        self.logFileHandler.write(f"\n\n\n############### NEW {datetime.now()} #############\n")
+        print("READ: before loop")
         while self.runningReadSerial:
             cmd = ord(self.serial.read(size=1))
+            # print("READ: in loop", cmd)
+
             id = ord(self.serial.read(size=1))
             size = ord(self.serial.read(size=1))
             buf = []
@@ -51,25 +58,32 @@ class RigControl():
             
             if cmd==0x74:
                 # print ("helo")
+                # self.logFileHandler.write("helo\n")
                 pass
+        
             elif cmd==0xfe:
                 message = "[READ] debug: "
                 for b in buf:
                     message += b.decode("ascii")
                 if message != lastDebugMessage:
                     lastDebugMessage = message
-                    print(message)    
+                    #print(message)   
+                    self.logFileHandler.write(message) 
             elif cmd==0xf0:
                 print ("[READ] ACK: ", id, buf[0])
                 self.receivedAckWithId(id)
                 pass
             else:
                 #print("[READ] cmd ", hex(cmd), ", id ", hex(id), ", size ", size, ", buf ", end='')
+                self.logFileHandler.write(f"[READ] cmd {hex(cmd)}, id {hex(id)}, size {size}")
+
                 for b in buf:
-                    pass
+                    self.logFileHandler.write(f"   buf: {hex(ord(b))}")
                     #print(hex(ord(b)), end='')
+                self.logFileHandler.write(f"   checksum: {hex(checksum)} \n")
                 #print(", checksum ", hex(checksum))
 
+        self.logFileHandler.close()
         self.log.info("[THREAD] stopped")
 
 
@@ -84,7 +98,7 @@ class RigControl():
         if self.package_counter > 255: 
             self.package_counter = 1
 
-    def sendCommand(self, cmdId: int, payload:bytes = None, debug: bool = False):
+    def sendCommand(self, cmdId: int, payload:bytes = None, debug: bool = False, waitForAck = True):
         command = bytearray(cmdId.to_bytes(1, byteorder='big'))
         if debug: print(" [sendCommand] Sending command", command)
         commandPackageCounter = self.package_counter
@@ -103,12 +117,12 @@ class RigControl():
         ## print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
             self.serial.write(command)
-            self.waitForAck(commandPackageCounter)
+            if waitForAck: self.waitForAck(commandPackageCounter)
         return commandPackageCounter
     
     def sendInitializeInInterfaceCommand(self): 
         print("[RC] Sending initialize Interface")
-        return self.sendCommand(RigControl.COMMAND_INIT, bytes(b'\x00\x00'))
+        return self.sendCommand(RigControl.COMMAND_INIT, bytes(b'\x00\x00'), False, False)
             
 
     def sendTurnToCommand(self, targetDegree: float, speedInDegreePerSecond: int):
@@ -121,22 +135,27 @@ class RigControl():
         if speedInDegreePerSecond > 255 or speedInDegreePerSecond < 1:
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
         print("")
-        # if targetDegree == 0:
-        #     targetDegree = 0.1
+        if targetDegree == 0:
+             targetDegree = 0.2
 
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
         degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
         print(f"  [sendTurnToCommand] Sending degree Value {degreeValue}..." )
-        id = self.sendCommand(RigControl.COMMAND_TURN_TO, degreeValueBytes + speedByte)
+        self.logFileHandler.write(f"  [sendTurnToCommand] Sending degree Value {degreeValue}...\n" )
+        id = self.sendCommand(RigControl.COMMAND_TURN_TO, degreeValueBytes + speedByte, False, False)
         print(f"  [sendTurnToCommand] ... with id {id}" )
+        self.logFileHandler.write(f"  [sendTurnToCommand] ... with id {id}\n" )
         return id
 
 
     def sendTurnCommand(self, speedInDegreePerSecond: int): 
         speedInDegreePerSecondBytes = self.convertSignedValueIntoHighLowBytes(speedInDegreePerSecond)
-        return self.sendCommand(RigControl.COMMAND_TURN, speedInDegreePerSecondBytes)
+        print(f"  [sendTurnCommand] Sending speed Value {speedInDegreePerSecondBytes}..." )
+        id = self.sendCommand(RigControl.COMMAND_TURN, speedInDegreePerSecondBytes, True)
+        print(f"  [sendTurnCommand] ... with id {id}" )
+        return id
 
     def calculateChecksum(self, bytes: bytes):
         return reduce(lambda x,y: x^y, bytes, 0x00)
