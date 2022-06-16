@@ -134,9 +134,9 @@ class RigControl():
             raise ValueError("targetDegree cannot be greater than 180 or less than -180 but is ", targetDegree)
         if speedInDegreePerSecond > 255 or speedInDegreePerSecond < 1:
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
-        print("")
+        # print("")
         if targetDegree == 0:
-             targetDegree = 0.2
+            targetDegree = 0.2
 
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
         degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)

@@ -18,17 +18,27 @@ def map(value, leftMin, leftMax, rightMin, rightMax):
     # Convert the 0-1 range into a value in the right range.
     return rightMin + (valueScaled * rightSpan)
 
+def getTimeAsMS():
+    return int(round(time.time() * 1000))
 class WTAdapter:
     def __init__(self, rigControl: RigControl) -> None:
         self.last_stepped_time = 0
         self.update_interval = 10
+        self.rigUpdateIntervalInMS = 20
         self.rigControl = rigControl
+        self.stopThreads = False
+
+        self.targetRigAngle = 0.0
+        self.targetRigSpeed = 13
 
     def start(self): 
-        x = threading.Thread(target=self.read_state)
-        x.start() 
+        readStateThread = threading.Thread(target=self.readState)
+        readStateThread.start()
 
-    def read_state(self):
+        updateRigThread = threading.Thread(target=self.updateRig)
+        updateRigThread.start()
+
+    def readState(self):
 
         updateIntervalInMs = 50
 
@@ -44,20 +54,26 @@ class WTAdapter:
 
             roll = map(roll, -90, 90, -35, 35)
 
-
-            print("would roll ", roll)
-
-            self.rigControl.sendTurnToCommand(roll, 8)
+            self.targetRigAngle = roll
+            # print("set roll ", roll)
 
 
-            delta = datetime.datetime.now() - timeStart
-            timeToSleepInMs = updateIntervalInMs - (delta.microseconds / 1000)
-            if(timeToSleepInMs > 0):
-                time.sleep(timeToSleepInMs / 1000)
+            # delta = datetime.datetime.now() - timeStart
+            # timeToSleepInMs = updateIntervalInMs - (delta.microseconds / 1000)
+            # if(timeToSleepInMs > 0):
+            #     time.sleep(timeToSleepInMs / 1000)
             # time.sleep(0.010)
             
 
-            
+    def updateRig(self):
+        lastRigUpdateTime = getTimeAsMS()
+        while(not self.stopThreads):
+            newRigUpdateTime = getTimeAsMS()
+            if(newRigUpdateTime < lastRigUpdateTime + self.rigUpdateIntervalInMS):
+                continue
+            lastRigUpdateTime = newRigUpdateTime
+            print(f"rig angle {self.targetRigAngle}")
+            self.rigControl.sendTurnToCommand(self.targetRigAngle, self.targetRigSpeed)
 
 
         
