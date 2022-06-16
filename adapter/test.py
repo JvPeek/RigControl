@@ -9,8 +9,8 @@ def getTimeAsMS():
 class TestAdapter(AdapterInterface):
     def __init__(self, rigControl: RigControl) -> None:
         super().__init__()
-        self.rigUpdateIntervalInMS = 500
-        self.counterUpdateIntervalInSeconds = 1.5
+        self.rigUpdateIntervalInMS = 100
+        self.counterUpdateIntervalInSeconds = 0.5
         self.rigControl = rigControl
         self.stopThreads = False
 
@@ -50,6 +50,8 @@ class TestAdapter(AdapterInterface):
             newRigUpdateTime = getTimeAsMS()
             if(newRigUpdateTime < lastRigUpdateTime + self.rigUpdateIntervalInMS):
                 continue
+
+            
             lastRigUpdateTime = newRigUpdateTime
 
             self.rigControl.sendTurnToCommand(self.targetRigAngle, self.targetRigSpeed)

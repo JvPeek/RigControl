@@ -67,10 +67,10 @@ class RigControl():
                     message += b.decode("ascii")
                 if message != lastDebugMessage:
                     lastDebugMessage = message
-                    #print(message)   
+                    # print(message)   
                     self.logFileHandler.write(message) 
             elif cmd==0xf0:
-                print ("[READ] ACK: ", id, buf[0])
+                # print ("[READ] ACK: ", id, buf[0])
                 self.receivedAckWithId(id)
                 pass
             else:
@@ -142,10 +142,10 @@ class RigControl():
         degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
-        print(f"  [sendTurnToCommand] Sending degree Value {degreeValue}..." )
+        # print(f"  [sendTurnToCommand] Sending degree Value {degreeValue}..." )
         self.logFileHandler.write(f"  [sendTurnToCommand] Sending degree Value {degreeValue}...\n" )
-        id = self.sendCommand(RigControl.COMMAND_TURN_TO, degreeValueBytes + speedByte, False, False)
-        print(f"  [sendTurnToCommand] ... with id {id}" )
+        id = self.sendCommand(RigControl.COMMAND_TURN_TO, degreeValueBytes + speedByte, False)
+        # print(f"  [sendTurnToCommand] ... with id {id}" )
         self.logFileHandler.write(f"  [sendTurnToCommand] ... with id {id}\n" )
         return id
 
@@ -153,7 +153,7 @@ class RigControl():
     def sendTurnCommand(self, speedInDegreePerSecond: int): 
         speedInDegreePerSecondBytes = self.convertSignedValueIntoHighLowBytes(speedInDegreePerSecond)
         print(f"  [sendTurnCommand] Sending speed Value {speedInDegreePerSecondBytes}..." )
-        id = self.sendCommand(RigControl.COMMAND_TURN, speedInDegreePerSecondBytes, True)
+        id = self.sendCommand(RigControl.COMMAND_TURN, speedInDegreePerSecondBytes, False)
         print(f"  [sendTurnCommand] ... with id {id}" )
         return id
 
@@ -161,14 +161,14 @@ class RigControl():
         return reduce(lambda x,y: x^y, bytes, 0x00)
 
     def receivedAckWithId(self, id: int):
-        print("---> receivedAckWithId", id)
+        #print("---> receivedAckWithId", id)
         self.awaitingAck.append(id)
 
     def waitForAck(self, id: int):
         while not id in self.awaitingAck:
             time.sleep(0.001)
         self.awaitingAck.remove(id)
-        print("--> Removed ACK", id)
+        #print("--> Removed ACK", id)
         return
 
     def convertSignedValueIntoHighLowBytes(self, degreeValue: int):

@@ -28,12 +28,12 @@ def map(value, leftMin, leftMax, rightMin, rightMax):
 class MonkeyAdapter(AdapterInterface):
     def __init__(self, rigControl: RigControl) -> None:
         super().__init__()
-        self.rigUpdateIntervalInMS = 100
+        self.rigUpdateIntervalInMS = 70
         self.rigControl = rigControl
         self.stopThreads = False
 
         self.targetRigAngle = 0.0
-        self.targetRigSpeed = 4
+        self.targetRigSpeed = 8
 
     def start(self): 
         readStateThread = threading.Thread(target=self.readState)
@@ -57,7 +57,8 @@ class MonkeyAdapter(AdapterInterface):
             
             rollInRadians = offsetToFloat(message, 16, 4)
             roll = math.degrees(rollInRadians)
-            self.log.info("\t\t\tGot update from SpaceMonkey", roll, rollInRadians)
+            roll = map(roll, -90, 90, -10, 10)
+            # self.log.info(f"\t\t\tGot update from SpaceMonkey {roll} {rollInRadians}")
             self.targetRigAngle = roll
 
     def updateRig(self):

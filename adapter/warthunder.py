@@ -30,7 +30,7 @@ class WTAdapter:
 
     def read_state(self):
 
-        updateIntervalInMs = 20
+        updateIntervalInMs = 70
 
         rigState = {
             "angle": 0,
@@ -46,7 +46,7 @@ class WTAdapter:
             r = requests.get(url = "http://192.168.178.24:8111/state")
 
             state = r.json() 
-            
+        
             if not state["valid"]: 
                 return
 
@@ -63,7 +63,7 @@ class WTAdapter:
             if (wxDt > 0.02 or wxDt < -0.02): 
                 rigState["planeAngle"] += wxDt    
             else:
-                rigState["planeAngle"] += (rigState["planeAngle"] * -1 / 20)
+                rigState["planeAngle"] += (rigState["planeAngle"] * -1 / 50)
                 if (rigState["planeAngle"] > -0.5 and rigState["planeAngle"] < 0.5):
                     rigState["planeAngle"] = 0
                 
@@ -80,13 +80,13 @@ class WTAdapter:
             rigState['angle'] = round(rigState['angle'] * 10) / 10
 
 
-            rigState['rigAngle'] = map(rigState['angle'], -90, 90, -22, 22)
+            # rigState['rigAngle'] = map(rigState['angle'], -90, 90, -22, 22)
+            rigState['rigAngle'] = rigState['angle']
 
 
             print("wx", state['Wx, deg/s'], " wxdt", wxDt , "rig angle", rigState['rigAngle'])
 
-
-            #self.rigControl.sendTurnToCommand(rigState['rigAngle'], 16)
+            self.rigControl.sendTurnToCommand(rigState['rigAngle'], 8)
 
 
             delta = datetime.datetime.now() - timeStart

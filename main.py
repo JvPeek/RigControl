@@ -2,19 +2,22 @@ from cgi import test
 import time
 from adapter.monkey import MonkeyAdapter
 from adapter.test import TestAdapter
+from adapter.warthunder import WTAdapter
 from rigControl.rigControl import RigControl
 import os
 from utils import getAdapters
  
 
 def main():
-    rigControl = RigControl("/dev/cu.usbserial-130")
+    # rigControl = RigControl("/dev/cu.usbserial-130")
+    rigControl = RigControl("/dev/cu.usbserial-140")
+    
     #rigControl.no_serial = True
 
     rigControl.init()
 
     rigControl.sendInitializeInInterfaceCommand()
-    time.sleep(10)
+    time.sleep(5)
     # rigControl.sendTurnCommand(0)
 
     # time.sleep(15)
@@ -22,11 +25,16 @@ def main():
     # print("wating...")
     # time.sleep(10)
 
-    for i in range(2, 15, 1): 
+
+
+    test = WTAdapter(rigControl)
+    test.start()
+
+    # for i in range(2, 15, 1): 
     # for i in map(lambda x: x/10.0, range(10, 150, 5)):
-        print("TurnTo: ", i)
-        rigControl.sendTurnToCommand(i, 4)
-        time.sleep(2)
+        # print("TurnTo: ", i)
+        # rigControl.sendTurnToCommand(i, 4)
+        # time.sleep(2)
 
     # for i in range(0, 10, 2): 
     #     print("TurnTo: ", i)
@@ -37,7 +45,7 @@ def main():
     # print("Will start")
     # runAdapter(rigControl)
     # runTest(rigControl)
-    #runTestAdapter(rigControl)
+    # runTestAdapter(rigControl)
 
 def runAdapter(rigControl): 
     monkeyAdapter = MonkeyAdapter(rigControl)
