@@ -56,8 +56,9 @@ class WTAdapter(AdapterInterface):
         print("updateing state")
         while(not self.stopThreads):  
             print("will update")
-
-            self.setTargetRigAngle(self.__getRollFromIndicators() if useIndicators else self.__getRollFromState())
+            angle = self.__getRollFromIndicators() if useIndicators else self.__getRollFromState()
+            if(angle != None): 
+                self.setTargetRigAngle(angle)
             time.sleep(0.7)
         print("finished updateState")
 
