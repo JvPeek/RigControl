@@ -67,7 +67,10 @@ adapters:
 ### Override Configuration
 To override a configuration start the `cli.py` with the `--configuration` parameter and pass the path to the configuration file as value.
 
-*configuration.yaml*
+```bash
+python3 cli.py --port /dev/cu.usbmodem1201 --configuration ./configs/b_configuration.yaml run -a monkey
+```
+
 ```yaml
 adapters: 
   monkey:
