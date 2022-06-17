@@ -2,9 +2,7 @@ import time
 import threading
 from adapter.AdapterInterface import AdapterInterface
 from rigControl.rigControl import RigControl
-
-def getTimeAsMS():
-    return int(round(time.time() * 1000))
+from utils import getTimeAsMS
 
 class TestAdapter(AdapterInterface):
     def __init__(self, rigControl: RigControl) -> None:
