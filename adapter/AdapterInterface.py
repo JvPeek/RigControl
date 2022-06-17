@@ -30,8 +30,9 @@ class AdapterInterface(object):
 
     def stop(self):
         self.stopThreads = True 
-        self.updateRigThread.join()
-        self.updateStateThread.join()
+        #FIXME: cannot join if thread hangs
+        # self.updateRigThread.join()
+        # self.updateStateThread.join()
 
     def __startUpdateRigThread(self):
         self.updateRigThread = threading.Thread(target=self.updateRig)
