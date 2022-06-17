@@ -1,6 +1,7 @@
 #!python3
 import argparse
-from utils import getAdapters, getAvailablePorts
+from adapter.adapters import getAdapters
+from utils import getAvailablePorts
 from rigControl.rigControl import RigControl
 
 
