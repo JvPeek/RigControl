@@ -46,7 +46,7 @@ class WTAdapter(AdapterInterface):
         if state == None or (not state["valid"]):
             return None
 
-        #TODO: Implement handline like in https://github.com/sjsone/RigControl/blob/ec37448d992dbb86f889da823273d208f2defd10/adapter/warthunder.py
+        #TODO: Implement handling like in https://github.com/sjsone/RigControl/blob/ec37448d992dbb86f889da823273d208f2defd10/adapter/warthunder.py
 
         return 2.00
         
