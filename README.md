@@ -33,3 +33,50 @@ python3 cli.py --port /dev/cu.usbmodem1201 run -a monkey
 ### SpaceMonkey (`monkeyAdapter`)
 
 ### Test (`TestAdapter`)
+
+## `WIP` Configuration
+***!!!NOTHING IS IMPLEMENTED!!!*** This is only to show a possible configuration pattern
+### Default
+```yaml
+filters:
+  ramp:
+    type: sigmoid
+    parameters:
+    c1: 1.5
+    c2: 1
+  map:
+    type: linear
+    parameters:
+      fromMin: -90
+      fromMax: 90
+      toMin: -22
+      toMax: 22
+adapters: 
+  monkey:
+    parameters:
+      ip: '0.0.0.0'
+      port: 12001
+    filters: ['ramp', 'map']
+  warthunder:
+    parameters:
+      ip: '0.0.0.0'
+      port: 8111
+    filters: ['ramp', 'map']
+```
+
+### Override Configuration
+To override a configuration start the `cli.py` with the `--configuration` parameter.
+
+```yaml
+adapters: 
+  monkey:
+    filters: 
+      ramp:
+      map: 
+        parameters:
+          toMin: -12
+          toMax: 12
+  warthunder:
+    parameters:
+      ip: '192.168.178.25'
+```
