@@ -1,3 +1,4 @@
+from sqlite3 import adapt
 import time
 from adapter.monkey import MonkeyAdapter
 from adapter.test import TestAdapter
@@ -16,7 +17,10 @@ def main():
     rigControl.sendInitializeInInterfaceCommand()
     # time.sleep(10)
 
-    adapter = WTAdapter(rigControl, "10.0.1.2")
+    # adapter = WTAdapter(rigControl, "10.0.1.2")
+    # adapter.start()
+
+    adapter = MonkeyAdapter(rigControl)
     adapter.start()
 
 
