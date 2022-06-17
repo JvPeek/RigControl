@@ -23,7 +23,9 @@ class AdapterInterface(object):
         self.stopThreads = False
 
     def init(self):
+        self.log.info("Sending initalize interface...")
         self.rigControl.sendInitializeInInterfaceCommand()
+        self.log.info("...will wait for 10 seconds")
         time.sleep(10)
 
     def start(self): 
