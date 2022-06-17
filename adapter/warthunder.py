@@ -6,7 +6,7 @@ from rigControl.rigControl import RigControl
 from utils import mapRange
 class WTAdapter(AdapterInterface):
 
-    def __init__(self, rigControl: RigControl, ip: str, port: int = 8111) -> None:
+    def __init__(self, rigControl: RigControl, ip: str = "0.0.0.0", port: int = 8111) -> None:
         super().__init__(rigControl)
 
         self.rigUpdateIntervalInMS = 1000
