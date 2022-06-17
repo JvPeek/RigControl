@@ -22,7 +22,9 @@ class AdapterInterface(object):
 
         self.stopThreads = False
 
-    def init(self): pass
+    def init(self):
+        self.rigControl.sendInitializeInInterfaceCommand()
+        time.sleep(10)
 
     def start(self): 
         self.__startUpdateRigThread()

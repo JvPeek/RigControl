@@ -13,14 +13,11 @@ def main():
     #rigControl.no_serial = True
 
     rigControl.init()
-
-    rigControl.sendInitializeInInterfaceCommand()
-    # time.sleep(10)
-
-    # adapter = WTAdapter(rigControl, "10.0.1.2")
-    # adapter.start()
-
+    
     adapter = MonkeyAdapter(rigControl)
+    # adapter = WTAdapter(rigControl, "10.0.1.2")
+
+    adapter.init()
     adapter.start()
 
 
