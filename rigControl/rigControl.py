@@ -39,10 +39,8 @@ class RigControl():
         time.sleep(2)
 
     def read_serial_function(self):
-
         lastDebugMessage = None
         self.logFileHandler.write(f"\n\n\n############### NEW {datetime.now()} #############\n")
-        print("READ: before loop")
         while self.runningReadSerial:
             cmd = ord(self.serial.read(size=1))
             # print("READ: in loop", cmd)
@@ -121,7 +119,7 @@ class RigControl():
         return commandPackageCounter
     
     def sendInitializeInInterfaceCommand(self): 
-        print("[RC] Sending initialize Interface")
+        #print("[RC] Sending initialize Interface")
         return self.sendCommand(RigControl.COMMAND_INIT, bytes(b'\x00\x00'), False, False)
             
 
@@ -142,7 +140,7 @@ class RigControl():
         degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
 
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
-        # print(f"  [sendTurnToCommand] Sending degree Value {degreeValue}..." )
+        #print(f"  [sendTurnToCommand] Sending degree Value {degreeValue}..." )
         self.logFileHandler.write(f"  [sendTurnToCommand] Sending degree Value {degreeValue}...\n" )
         id = self.sendCommand(RigControl.COMMAND_TURN_TO, degreeValueBytes + speedByte, False)
         # print(f"  [sendTurnToCommand] ... with id {id}" )
