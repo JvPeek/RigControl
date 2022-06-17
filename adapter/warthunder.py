@@ -1,81 +1,64 @@
-
-from os import times
-import requests
-import threading
-import datetime
 import time
+import requests
+from adapter.AdapterInterface import AdapterInterface
 
 from rigControl.rigControl import RigControl
+from utils import mapRange
+class WTAdapter(AdapterInterface):
 
-def map(value, leftMin, leftMax, rightMin, rightMax):
-    # Figure out how 'wide' each range is
-    leftSpan = leftMax - leftMin
-    rightSpan = rightMax - rightMin
+    def __init__(self, rigControl: RigControl, ip: str, port: int = 8111) -> None:
+        super().__init__(rigControl)
 
-    # Convert the left range into a 0-1 range (float)
-    valueScaled = float(value - leftMin) / float(leftSpan)
-
-    # Convert the 0-1 range into a value in the right range.
-    return rightMin + (valueScaled * rightSpan)
-
-def getTimeAsMS():
-    return int(round(time.time() * 1000))
-class WTAdapter:
-    def __init__(self, rigControl: RigControl) -> None:
-        self.last_stepped_time = 0
-        self.update_interval = 10
-        self.rigUpdateIntervalInMS = 20
-        self.rigControl = rigControl
-        self.stopThreads = False
-
-        self.targetRigAngle = 0.0
+        self.rigUpdateIntervalInMS = 1000
         self.targetRigSpeed = 13
 
-    def start(self): 
-        readStateThread = threading.Thread(target=self.readState)
-        readStateThread.start()
+        self.host = {
+            "ip": ip,
+            "port": port,
+            "baseUrl": f"http://{ip}:{port}"
+        }
 
-        updateRigThread = threading.Thread(target=self.updateRig)
-        updateRigThread.start()
 
-    def readState(self):
+    def __requestAndReturnJsonOrNone(self, url: str) -> requests.Response:
+        try:
+            return requests.get(url=url, timeout=0.2).json()
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            return None
 
-        updateIntervalInMs = 50
+    def __requestState(self):
+        return self.__requestAndReturnJsonOrNone(url = f"{self.host['baseUrl']}/state")
 
-        while True:
-            timeStart = datetime.datetime.now()
-            
-            # sending get request and saving the response as response object
-            r = requests.get(url = "http://192.168.178.24:8111/indicators")
-            state = r.json()
+    def __requestIndicators(self):
+        return self.__requestAndReturnJsonOrNone(url = f"{self.host['baseUrl']}/indicators")
+
+    def __getRollFromIndicators(self) -> float:
+        indicators = self.__requestIndicators()
+        if indicators == None or (not indicators.has_key('aviahorizon_roll') or (not indicators["valid"])):
+            return None
+
+        roll = indicators['aviahorizon_roll']
+        roll = mapRange(roll, -90, 90, -35, 35)
+
+        return roll
+
+    def __getRollFromState(self) -> float:
+        state = self.__requestState()
+        if state == None or (not state["valid"]):
+            return None
+
+        #TODO: Implement handline like in https://github.com/sjsone/RigControl/blob/ec37448d992dbb86f889da823273d208f2defd10/adapter/warthunder.py
+
+        return 2.00
         
 
-            roll = state['aviahorizon_roll']
+    def updateState(self):
+        useIndicators = self.__getRollFromIndicators() != None
+        print("updateing state")
+        while(not self.stopThreads):  
+            print("will update")
 
-            roll = map(roll, -90, 90, -35, 35)
-
-            self.targetRigAngle = roll
-            # print("set roll ", roll)
-
-
-            # delta = datetime.datetime.now() - timeStart
-            # timeToSleepInMs = updateIntervalInMs - (delta.microseconds / 1000)
-            # if(timeToSleepInMs > 0):
-            #     time.sleep(timeToSleepInMs / 1000)
-            # time.sleep(0.010)
-            
-
-    def updateRig(self):
-        lastRigUpdateTime = getTimeAsMS()
-        while(not self.stopThreads):
-            newRigUpdateTime = getTimeAsMS()
-            if(newRigUpdateTime < lastRigUpdateTime + self.rigUpdateIntervalInMS):
-                continue
-            lastRigUpdateTime = newRigUpdateTime
-            print(f"rig angle {self.targetRigAngle}")
-            self.rigControl.sendTurnToCommand(self.targetRigAngle, self.targetRigSpeed)
-
+            self.setTargetRigAngle(self.__getRollFromIndicators() if useIndicators else self.__getRollFromState())
+            time.sleep(0.7)
+        print("finished updateState")
 
         
-        
-
