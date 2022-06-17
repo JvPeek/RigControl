@@ -38,6 +38,7 @@ python3 cli.py --port /dev/cu.usbmodem1201 run -a monkey
 ***!!!NOTHING IS IMPLEMENTED!!!*** This is only to show a possible configuration pattern
 ### Default
 ```yaml
+# default.yaml
 filters:
   ramp:
     type: sigmoid
@@ -72,6 +73,7 @@ python3 cli.py --port /dev/cu.usbmodem1201 --configuration ./configs/b_configura
 ```
 
 ```yaml
+# b_configuration.yaml
 adapters: 
   monkey:
     filters: 
