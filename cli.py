@@ -8,7 +8,7 @@ import sys
 
 
 def argumentCommand(args):
-    print(args.mainCommand)
+    print(args.command)
     if(args.list == True):
         print(getAdapters().keys())
 
@@ -34,9 +34,9 @@ def runCommand(args):
 
 def main():
     mainParser = argparse.ArgumentParser(description='RIG Controller -- Python Edition --')
-    mainParser.add_argument('-p', type=str, choices=getAvailablePorts(), help="Serialport path", required=True, dest="port")
+    mainParser.add_argument('--port', type=str, choices=getAvailablePorts(), help="Serialport path", required=True, dest="port")
 
-    mainSubparsers = mainParser.add_subparsers(help='sub-command help', required=True, dest="mainCommand")
+    mainSubparsers = mainParser.add_subparsers(help='sub-command help', required=True, dest="command")
 
     adapterParser = mainSubparsers.add_parser('adapter', help='Adapters help')
     adapterParser.add_argument('list', type=bool, help='bar help')
@@ -50,7 +50,7 @@ def main():
         "adapter": argumentCommand,
         "run": runCommand
     }
-    commandDict[args.mainCommand](args)
+    commandDict[args.command](args)
 
 
     
