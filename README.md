@@ -65,8 +65,9 @@ adapters:
 ```
 
 ### Override Configuration
-To override a configuration start the `cli.py` with the `--configuration` parameter.
+To override a configuration start the `cli.py` with the `--configuration` parameter and pass the path to the configuration file as value.
 
+*configuration.yaml*
 ```yaml
 adapters: 
   monkey:
