@@ -11,7 +11,7 @@ def offsetToFloat (buffer, offset, length):
     return struct.unpack('<f', bytearray(slice))[0]
 
 class MonkeyAdapter(AdapterInterface):
-    def __init__(self, rigControl: RigControl, ip: str, port:int = 12001) -> None:
+    def __init__(self, rigControl: RigControl, ip: str = "0.0.0.0", port:int = 12001) -> None:
         super().__init__(rigControl)
         self.rigUpdateIntervalInMS = 70
 
@@ -22,7 +22,7 @@ class MonkeyAdapter(AdapterInterface):
             "port": port
         }
 
-    def readState(self):
+    def updateState(self):
         serverIp = self.host['ip']
         serverPort = self.host['port']
         receiveBufferSize = 1024
