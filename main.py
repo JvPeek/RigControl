@@ -13,7 +13,7 @@ def main():
     #rigControl.no_serial = True
 
     rigControl.init()
-    
+
     adapter = MonkeyAdapter(rigControl)
     # adapter = WTAdapter(rigControl, "10.0.1.2")
 
@@ -26,9 +26,6 @@ def main():
         print('Handling SIGINT (Ctrl+C)')
         adapter.stop()
         sys.exit()
-
-
-
     signal.signal(signal.SIGINT, signal_handler)
 
     
