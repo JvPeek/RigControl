@@ -125,7 +125,7 @@ class RigControl():
 
     def sendTurnToCommand(self, targetDegree: float, speedInDegreePerSecond: int):
         if not isinstance(targetDegree, int) and not isinstance(targetDegree, float): 
-            raise ValueError("targetDegree has to be an integer or float")
+            raise ValueError(f"targetDegree has to be an integer or float. Is: {type(targetDegree)}")
         if not isinstance(speedInDegreePerSecond, int): 
             raise ValueError("speedInDegreePerSecond has to be an integer")
         if targetDegree > 180 or targetDegree < -180:
