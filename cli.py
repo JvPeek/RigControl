@@ -3,6 +3,8 @@ import argparse
 from adapter.adapters import getAdapters
 from utils import getAvailablePorts
 from rigControl.rigControl import RigControl
+import signal
+import sys
 
 
 def argumentCommand(args):
@@ -21,8 +23,13 @@ def runCommand(args):
     adapter.init()
 
     adapter.start()
-    
-    
+
+    def signal_handler(sig, frame):
+        nonlocal adapter
+        print('Handling SIGINT (Ctrl+C)')
+        adapter.stop()
+        sys.exit()
+    signal.signal(signal.SIGINT, signal_handler)
 
 
 def main():
