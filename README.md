@@ -12,7 +12,7 @@ Currently there is no way to define configurations, but all adapters are using t
 The CLI shows all possibly values for a parameter:
 ```bash
 python3 cli.py
-#usage: cli.py [-h] --port {/dev/cu.Bluetooth-Incoming-Port,/dev/cu.usbmodem1201,/dev/cu.wlan-debug} {adapter,run} ...
+# usage: cli.py [-h] --port {/dev/cu.Bluetooth-Incoming-Port,/dev/cu.usbmodem1201,/dev/cu.wlan-debug} {adapter,run} ...
 ```
 
 ```bash
