@@ -114,7 +114,7 @@ class RigControl():
         if debug: print(" [sendCommand] checksum", checksum, "for", command)
         command.append(checksum)
 
-        print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
+        print("===== would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
             self.serial.write(command)
             if waitForAck: self.waitForAck(commandPackageCounter)
@@ -150,12 +150,17 @@ class RigControl():
 
         self.lastValue = degreeValue
         degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
+
+        speedInDegreePerSecond = speedInDegreePerSecond * 10
         # ATTENTION /!\
         # DON'T DO THIS:
-
         #if degreeValue < 0:
         #    speedInDegreePerSecond = 255-speedInDegreePerSecond
-        speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
+
+        if degreeValue < 0 and degreeValue > -1:
+            degreeValue = 1;
+
+        speedByte = speedInDegreePerSecond.to_bytes(2, byteorder='big')
         print(f" [sendTurnToCommand] sendling speedByte {speedByte}...")
         #print(f"  [sendTurnToCommand] Sending degree Value {degreeValue}..." )
         self.logFileHandler.write(f"  [sendTurnToCommand] Sending degree Value {degreeValue}...\n" )

@@ -9,12 +9,12 @@ import sys
 
 
 def main():
-    rigControl = RigControl("COM3")
+    rigControl = RigControl("/dev/ttyUSB0")
     #rigControl.no_serial = True
 
     rigControl.init()
 
-    adapter = MonkeyAdapter(rigControl, "127.0.0.1")
+    adapter = MonkeyAdapter(rigControl, "192.168.178.48")
     # adapter = WTAdapter(rigControl, "10.0.1.2")
 
     adapter.init()
