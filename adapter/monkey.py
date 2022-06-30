@@ -37,6 +37,6 @@ class MonkeyAdapter(AdapterInterface):
             
             rollInRadians = offsetToFloat(message, 16, 4)
             roll = math.degrees(rollInRadians)
-            roll = mapRange(roll, -90, 90, -10, 10)
-            # self.log.info(f"\t\t\tGot update from SpaceMonkey {roll} {rollInRadians}")
+            roll = mapRange(roll, -90, 90, -35, 35)
+            #self.log.info(f"\t\t\tGot update from SpaceMonkey {roll} {rollInRadians}")
             self.setTargetRigAngle(roll)

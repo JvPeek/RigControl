@@ -65,7 +65,7 @@ class RigControl():
                     message += b.decode("ascii")
                 if message != lastDebugMessage:
                     lastDebugMessage = message
-                    # print(message)   
+                    print(message)   
                     self.logFileHandler.write(message) 
             elif cmd==0xf0:
                 # print ("[READ] ACK: ", id, buf[0])
@@ -97,6 +97,7 @@ class RigControl():
             self.package_counter = 1
 
     def sendCommand(self, cmdId: int, payload:bytes = None, debug: bool = False, waitForAck = True):
+        print("sending data")
         command = bytearray(cmdId.to_bytes(1, byteorder='big'))
         if debug: print(" [sendCommand] Sending command", command)
         commandPackageCounter = self.package_counter
@@ -112,7 +113,8 @@ class RigControl():
         checksum = self.calculateChecksum(command)
         if debug: print(" [sendCommand] checksum", checksum, "for", command)
         command.append(checksum)
-        ## print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
+
+        print("would send: ", ", ".join("0x{:02x}".format(b)  for b in command))
         if not self.no_serial: 
             self.serial.write(command)
             if waitForAck: self.waitForAck(commandPackageCounter)
@@ -124,6 +126,7 @@ class RigControl():
             
 
     def sendTurnToCommand(self, targetDegree: float, speedInDegreePerSecond: int):
+        print("turning to")
         if not isinstance(targetDegree, int) and not isinstance(targetDegree, float): 
             raise ValueError(f"targetDegree has to be an integer or float. Is: {type(targetDegree)}")
         if not isinstance(speedInDegreePerSecond, int): 
@@ -132,14 +135,28 @@ class RigControl():
             raise ValueError("targetDegree cannot be greater than 180 or less than -180 but is ", targetDegree)
         if speedInDegreePerSecond > 255 or speedInDegreePerSecond < 1:
             raise ValueError("speedInDegreePerSecond has to be between 1 and 255 but is ", speedInDegreePerSecond)
-        # print("")
         if targetDegree == 0:
-            targetDegree = 0.2
+            targetDegree = 1;
 
         degreeValue = round(round(targetDegree, 1) * 10) # needs to be between 1800 or -1800
-        degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
 
+        try:
+            print(self.lastValue)
+            if self.lastValue == degreeValue:
+                degreeValue = degreeValue + 0
+
+        except:
+            NameError: self.lastValue = 0
+
+        self.lastValue = degreeValue
+        degreeValueBytes = self.convertSignedValueIntoHighLowBytes(degreeValue)
+        # ATTENTION /!\
+        # DON'T DO THIS:
+
+        #if degreeValue < 0:
+        #    speedInDegreePerSecond = 255-speedInDegreePerSecond
         speedByte = speedInDegreePerSecond.to_bytes(1, byteorder='big')
+        print(f" [sendTurnToCommand] sendling speedByte {speedByte}...")
         #print(f"  [sendTurnToCommand] Sending degree Value {degreeValue}..." )
         self.logFileHandler.write(f"  [sendTurnToCommand] Sending degree Value {degreeValue}...\n" )
         id = self.sendCommand(RigControl.COMMAND_TURN_TO, degreeValueBytes + speedByte, False)

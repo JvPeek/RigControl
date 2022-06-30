@@ -15,17 +15,17 @@ class AdapterInterface(object):
 
         self.updateRigThread = None
         self.updateStateThread = None
-        self.rigUpdateIntervalInMS = 20
+        self.rigUpdateIntervalInMS = 15
 
         self.targetRigAngle = 0.0
-        self.targetRigSpeed = 6
+        self.targetRigSpeed = 20
 
         self.stopThreads = False
 
     def init(self):
         self.log.info("Sending initalize interface...")
         self.rigControl.sendInitializeInInterfaceCommand()
-        self.log.info("...will wait for 10 seconds")
+        self.log.info("...will wait for 10 seconds... NOT")
         time.sleep(10)
 
     def start(self): 
@@ -39,6 +39,7 @@ class AdapterInterface(object):
         # self.updateStateThread.join()
 
     def __startUpdateRigThread(self):
+        print("updating rig thread")
         self.updateRigThread = threading.Thread(target=self.updateRig)
         self.updateRigThread.start()
 
@@ -47,6 +48,7 @@ class AdapterInterface(object):
         self.updateStateThread.start()
 
     def updateRig(self):
+        print("updating rig")
         lastRigUpdateTime = getTimeAsMS()
         while(not self.stopThreads):
             newRigUpdateTime = getTimeAsMS()

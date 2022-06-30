@@ -2,19 +2,19 @@ from sqlite3 import adapt
 import time
 from adapter.monkey import MonkeyAdapter
 from adapter.test import TestAdapter
-from adapter.warthunder import WTAdapter
+#from adapter.warthunder import WTAdapter
 from rigControl.rigControl import RigControl
 import signal
 import sys
 
 
 def main():
-    rigControl = RigControl("/dev/cu.usbmodem1201")
+    rigControl = RigControl("COM3")
     #rigControl.no_serial = True
 
     rigControl.init()
 
-    adapter = MonkeyAdapter(rigControl)
+    adapter = MonkeyAdapter(rigControl, "127.0.0.1")
     # adapter = WTAdapter(rigControl, "10.0.1.2")
 
     adapter.init()
