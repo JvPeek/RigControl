@@ -6,6 +6,16 @@ from adapter.test import TestAdapter
 from rigControl.rigControl import RigControl
 import signal
 import sys
+import paho.mqtt.client as paho
+
+broker="192.168.178.45"
+port=1883
+
+client1= paho.Client("control1")                           #create client object
+client1.connect(broker,port)                                 #establish connection
+client1.publish("house/bulb1","on")                   #publish
+
+
 
 
 def main():

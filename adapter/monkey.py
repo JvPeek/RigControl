@@ -13,9 +13,9 @@ def offsetToFloat (buffer, offset, length):
 class MonkeyAdapter(AdapterInterface):
     def __init__(self, rigControl: RigControl, ip: str = "0.0.0.0", port:int = 12001) -> None:
         super().__init__(rigControl)
-        self.rigUpdateIntervalInMS = 70
+        self.rigUpdateIntervalInMS = 30
 
-        self.targetRigSpeed = 8
+        self.targetRigSpeed = 16
 
         self.host = {
             "ip": ip,

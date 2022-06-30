@@ -15,7 +15,7 @@ class AdapterInterface(object):
 
         self.updateRigThread = None
         self.updateStateThread = None
-        self.rigUpdateIntervalInMS = 15
+        self.rigUpdateIntervalInMS = 500
 
         self.targetRigAngle = 0.0
         self.targetRigSpeed = 20
