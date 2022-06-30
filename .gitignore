@@ -2,3 +2,6 @@
 __pycache__
 workingDemo.py
 *.log
+build/*
+dist/*
+main.spec
