@@ -22,8 +22,8 @@ def main():
     parser.add_argument('--offline', default=False, action="store_true",
                     help='Allows to run the app without brains attached.')
     args = parser.parse_args()
-    print(args.port)
-    if (args.port == "none"):
+
+    if (args.offline):
         rigControl = RigControl(None)
         rigControl.no_serial = True
     else:
